@@ -16,6 +16,7 @@ public class TokensList implements IObjectsList, Iterable<IterTokenEntry> {
     private final List<TokensList> appended = new LowMemoryArrayList<>();
     private LookingFor lookingFor;
     private boolean freeze;
+    private boolean mapsToTypeVar;
 
     public TokensList(IToken[] tokens) {
         this.tokens = tokens;
@@ -29,6 +30,7 @@ public class TokensList implements IObjectsList, Iterable<IterTokenEntry> {
         ret.size = size;
         ret.freeze = true;
         ret.lookingFor = lookingFor;
+        ret.mapsToTypeVar = mapsToTypeVar;
         ret.appended.addAll(this.appended);
         return ret;
     }
@@ -158,6 +160,14 @@ public class TokensList implements IObjectsList, Iterable<IterTokenEntry> {
 
     public void freeze() {
         this.freeze = true;
+    }
+
+    public void setMapsToTypeVar(boolean b) {
+        this.mapsToTypeVar = b;
+    }
+
+    public boolean getMapsToTypeVar() {
+        return this.mapsToTypeVar;
     }
 
 }

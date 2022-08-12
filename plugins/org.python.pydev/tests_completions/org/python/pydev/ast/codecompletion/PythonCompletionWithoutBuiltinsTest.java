@@ -258,22 +258,22 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
      */
     public void testAssertDeterminesClass() throws Exception {
         String s = "def m1(a):\n" +
-                "    import xmllib\n" +
-                "    assert isinstance(a, xmllib.XMLParser)\n" +
+                "    import zipfile\n" +
+                "    assert isinstance(a, zipfile.ZipFile)\n" +
                 "    a.";
 
-        requestCompl(s, s.length(), -1, new String[] { "handle_data(data)" });
+        requestCompl(s, s.length(), -1, new String[] { "getinfo(name)" });
 
     }
 
     public void testAssertDeterminesClass2() throws Exception {
         String s = "def m1(a):\n" +
-                "    import xmllib\n" +
-                "    assert isinstance(a.bar, xmllib.XMLParser)\n"
+                "    import zipfile\n" +
+                "    assert isinstance(a.bar, zipfile.ZipFile)\n"
                 +
                 "    a.bar.";
 
-        requestCompl(s, s.length(), -1, new String[] { "handle_data(data)" });
+        requestCompl(s, s.length(), -1, new String[] { "getinfo(name)" });
 
     }
 
@@ -600,7 +600,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
     public void testRelativeImport() throws FileNotFoundException, Exception {
         String file = TestDependent.TEST_PYSRC_TESTING_LOC +
                 "testlib/unittest/relative/testrelative.py";
-        String strDoc = "from toimport import ";
+        String strDoc = "from .toimport import ";
         requestCompl(new File(file), strDoc, strDoc.length(), -1, new String[] { "Test1", "Test2" });
     }
 
@@ -673,28 +673,28 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
     public void testNestedImports() throws BadLocationException, IOException, Exception {
         String s;
         s = "from extendable import nested\n" +
-                "print nested.NestedClass.";
-        requestCompl(s, -1, 1, new String[] { "nestedMethod(self)" });
+                "nested.NestedClass.";
+        requestCompl(s, -1, -1, new String[] { "nestedMethod(self)" });
     }
 
     public void testSameName() throws BadLocationException, IOException, Exception {
         String s;
         s = "from extendable.namecheck import samename\n" +
-                "print samename.";
-        requestCompl(s, -1, 1, new String[] { "method1(self)" });
+                "samename.";
+        requestCompl(s, -1, -1, new String[] { "method1(self)" });
     }
 
     public void testSameName2() throws BadLocationException, IOException, Exception {
         String s;
         s = "from extendable import namecheck\n" +
-                "print namecheck.samename.";
-        requestCompl(s, -1, 1, new String[] { "method1(self)" });
+                "namecheck.samename.";
+        requestCompl(s, -1, -1, new String[] { "method1(self)" });
     }
 
     public void testCompositeImport() throws BadLocationException, IOException, Exception {
         String s;
         s = "import xml.sax\n" +
-                "print xml.sax.";
+                "xml.sax.";
         requestCompl(s, -1, -1, new String[] { "default_parser_list" });
     }
 
@@ -1005,10 +1005,18 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
         checkParticipant(s);
     }
 
-    public void testExtensionsWithUndefined() throws Exception {
+    public void testUnpackedListPos() throws Exception {
         String s;
         s = "" +
                 "x = [1,2,3]" +
+                "x[0].";
+        requestCompl(s, s.length(), -1, new String[] { "denominator" });
+    }
+
+    public void testExtensionsWithUndefined() throws Exception {
+        String s;
+        s = "" +
+                "x = []" +
                 "x[0]." +
                 "";
         checkParticipant(s);
@@ -1296,7 +1304,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "    elif 2:\n" +
                 "        c = Bar()\n" +
                 "    c.";
-        requestCompl(s, s.length(), 2, new String[] { "foo()", "bar()" });
+        requestCompl(s, s.length(), -1, new String[] { "foo()", "bar()" });
     }
 
     public void testAssign2() throws Exception {
@@ -1317,7 +1325,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 +
                 "    def m3(self):\n" +
                 "        self.c.";
-        requestCompl(s, s.length(), 2, new String[] { "foo()", "bar()" });
+        requestCompl(s, s.length(), -1, new String[] { "foo()", "bar()" });
     }
 
     public void testReturn() throws Exception {
@@ -1491,7 +1499,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "    \n" +
                 "    F"; //request at the Bar context
 
-        requestCompl(s, new String[] { "Foo" });
+        requestCompl(s, -1, new String[] { "Foo" });
     }
 
     public void testClsCompletion() throws Exception {
@@ -1866,7 +1874,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
     public void testGrammar2AbsoluteAndRelativeImports() throws Exception {
         String file = TestDependent.TEST_PYSRC_TESTING_LOC +
                 "extendable/grammar3/sub1.py";
-        String strDoc = "from relative import ";
+        String strDoc = "from .relative import ";
         ICompletionProposalHandle[] codeCompletionProposals = requestCompl(new File(file), strDoc, strDoc.length(), -1,
                 new String[] { "NotFound" });
         assertNotContains("DTest", codeCompletionProposals);
@@ -3275,10 +3283,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "";
         s = StringUtils.format(original, "");
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(1, proposals.length);
-        ICompletionProposalHandle prop = proposals[0];
-        assertEquals("foo()", prop.getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "foo()" });
     }
 
     public void testPyiStubs2() throws Exception {
@@ -3289,12 +3294,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "";
         s = StringUtils.format(original, "");
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        if (proposals.length != 1) {
-            fail("Expected a single proposal. Found:\n: " + Arrays.toString(proposals));
-        }
-        ICompletionProposalHandle prop = proposals[0];
-        assertEquals("bar()", prop.getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "bar()" });
     }
 
     public void testPyiStubs3() throws Exception {
@@ -3308,10 +3308,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                     "";
             s = StringUtils.format(original, "");
 
-            ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-            assertEquals(1, proposals.length);
-            ICompletionProposalHandle prop = proposals[0];
-            assertEquals("charlie()", prop.getDisplayString());
+            requestCompl(s, s.length(), -1, new String[] { "charlie()" });
         } finally {
             GRAMMAR_TO_USE_FOR_PARSING = initial;
         }
@@ -3328,10 +3325,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                     "";
             s = StringUtils.format(original, "");
 
-            ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-            assertEquals(1, proposals.length);
-            ICompletionProposalHandle prop = proposals[0];
-            assertEquals("charlie()", prop.getDisplayString());
+            requestCompl(s, s.length(), -1, new String[] { "charlie()" });
         } finally {
             GRAMMAR_TO_USE_FOR_PARSING = initial;
         }
@@ -3351,10 +3345,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "        self.my_var.";
         s = StringUtils.format(original, "");
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(1, proposals.length);
-        ICompletionProposalHandle prop = proposals[0];
-        assertEquals("method()", prop.getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "method()" });
     }
 
     public void testTypeHintAttributes2() throws Exception {
@@ -3371,10 +3362,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "        my_var.";
         s = StringUtils.format(original, "");
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(1, proposals.length);
-        ICompletionProposalHandle prop = proposals[0];
-        assertEquals("method()", prop.getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "method()" });
     }
 
     public void testNamespacePackageImportCompletion() throws Exception {
@@ -3399,10 +3387,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "           e.";
         s = StringUtils.format(original, "");
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(1, proposals.length);
-        ICompletionProposalHandle prop = proposals[0];
-        assertEquals("method()", prop.getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "method()" });
     }
 
     public void testTypedExceptionCompletion2() throws Exception {
@@ -3423,10 +3408,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "           e.";
         s = StringUtils.format(original, "");
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(2, proposals.length);
-        assertEquals("method()", proposals[0].getDisplayString());
-        assertEquals("method2()", proposals[1].getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "method()", "method2()" });
     }
 
     public void testTypedExceptionCompletion3() throws Exception {
@@ -3448,10 +3430,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
                 "        except MyException2 as e:\r\n" +
                 "           e.";
         s = StringUtils.format(original, "");
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(2, proposals.length);
-        assertEquals("method()", proposals[0].getDisplayString());
-        assertEquals("method2()", proposals[1].getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "method()", "method2()" });
     }
 
     public void testMethodCompletion() throws Exception {

@@ -193,4 +193,10 @@ public interface ICompletionState extends ICompletionCache, IModuleRequestState 
 
     void setAcceptTypeshed(boolean acceptTypeshed);
 
+    boolean isResolvingBuiltins();
+
+    void pushResolvingBuiltins();
+
+    void popResolvingBuiltins();
+
 }

@@ -20,6 +20,8 @@ import org.eclipse.jface.text.Document;
 import org.python.pydev.ast.codecompletion.revisited.modules.CompiledModule;
 import org.python.pydev.core.ICodeCompletionASTManager;
 import org.python.pydev.core.ICompletionState;
+import org.python.pydev.core.IToken;
+import org.python.pydev.core.IterTokenEntry;
 import org.python.pydev.core.TestDependent;
 import org.python.pydev.core.TokensList;
 import org.python.pydev.core.structure.CompletionRecursionException;
@@ -188,14 +190,25 @@ public class PythonPathHelperTest extends CodeCompletionTestsBase {
         line = 3;
         col = 2;
 
-        sDoc = "" + "from testrec.imp3 import MethodReturn1 \n" + "i = MethodReturn1()                    \n" + "i.";
+        sDoc = "" +
+                "from testrec.imp3 import MethodReturn1 \n" +
+                "i = MethodReturn1()                    \n" +
+                "i.";
 
         TokensList comps = null;
         Document doc = new Document(sDoc);
         ICompletionState state = new CompletionState(line, col, token, nature, "");
         ICodeCompletionASTManager a = nature.getAstManager();
         comps = a.getCompletionsForToken(doc, state);
-        assertEquals(0, comps.size());
+        boolean found = false;
+        for (IterTokenEntry e : comps) {
+            IToken token2 = e.getToken();
+            if (token2.getRepresentation().equals("denominator")) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue("Could not find denominator in: " + comps, found);
 
     }
 

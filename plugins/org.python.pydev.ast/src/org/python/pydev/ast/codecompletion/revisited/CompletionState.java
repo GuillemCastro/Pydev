@@ -48,6 +48,7 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
     private IPythonNature nature;
     private String qualifier;
     private int levelGetCompletionsUnpackingObject = 0;
+    private int resolvingBuiltins = 0;
 
     private final Memo<String> memory = new Memo<String>();
     private final Memo<Definition> definitionMemory = new Memo<Definition>();
@@ -651,6 +652,21 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
             // When we get to level 0, clear anything searched previously
             alreadySearchedInAssign.clear();
         }
+    }
+
+    @Override
+    public void pushResolvingBuiltins() {
+        this.resolvingBuiltins += 1;
+    }
+
+    @Override
+    public void popResolvingBuiltins() {
+        this.resolvingBuiltins -= 1;
+    }
+
+    @Override
+    public boolean isResolvingBuiltins() {
+        return this.resolvingBuiltins > 0;
     }
 
     @Override

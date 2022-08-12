@@ -1736,6 +1736,7 @@ public class NodeUtils {
     }
 
     public static String getUnpackedTypeFromTypeDocstring(String compoundType, UnpackInfo checkPosForDict) {
+        final String initial = compoundType;
         ParsingUtils parsingUtils = ParsingUtils.create(compoundType);
         int len = parsingUtils.len();
         if (checkPosForDict.getUnpackFor()) {
@@ -1757,7 +1758,11 @@ public class NodeUtils {
             //NOTE: the getUnpackTuple(10) isn't really good, but we have to change the strategy
             //to first parse to get what's available to then know the length (so, right now
             //we won't work very well with negative numbers in this use-case).
-            return getValueForContainer(compoundType, 0, checkPosForDict.getUnpackTuple(10), -1);
+            String ret = getValueForContainer(compoundType, 0, checkPosForDict.getUnpackTuple(10), -1);
+            if (ret != null && ret.equals(initial)) {
+                return "";
+            }
+            return ret;
         } catch (SyntaxErrorException e) {
             return "";
         }

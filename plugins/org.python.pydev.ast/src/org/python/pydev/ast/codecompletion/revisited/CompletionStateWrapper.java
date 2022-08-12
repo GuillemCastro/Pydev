@@ -326,4 +326,19 @@ public final class CompletionStateWrapper implements ICompletionState {
     public NoExceptionCloseable pushLookingFor(LookingFor lookingForInstancedVariable) {
         return this.wrapped.pushLookingFor(lookingForInstancedVariable);
     }
+
+    @Override
+    public boolean isResolvingBuiltins() {
+        return this.wrapped.isResolvingBuiltins();
+    }
+
+    @Override
+    public void pushResolvingBuiltins() {
+        this.wrapped.pushResolvingBuiltins();
+    }
+
+    @Override
+    public void popResolvingBuiltins() {
+        this.wrapped.popResolvingBuiltins();
+    }
 }

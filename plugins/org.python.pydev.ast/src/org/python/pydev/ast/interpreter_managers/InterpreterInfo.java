@@ -48,7 +48,6 @@ import org.python.pydev.ast.codecompletion.revisited.SystemModulesManager;
 import org.python.pydev.ast.runners.SimpleRunner;
 import org.python.pydev.core.CorePlugin;
 import org.python.pydev.core.ExtensionHelper;
-import org.python.pydev.core.IGrammarVersionProvider;
 import org.python.pydev.core.IInterpreterInfo;
 import org.python.pydev.core.IInterpreterManager;
 import org.python.pydev.core.IModuleRequestState;
@@ -1983,9 +1982,6 @@ public class InterpreterInfo implements IInterpreterInfo {
             try {
                 File typeshedPath = CorePlugin.getTypeshedPath();
                 File f = new File(typeshedPath, "stdlib");
-                if (this.getGrammarVersion() <= IGrammarVersionProvider.LATEST_GRAMMAR_PY2_VERSION) {
-                    f = new File(f, "@python2");
-                }
                 if (f.isDirectory()) {
                     fillTypeshedFromDirInfo(f, "");
                 }
@@ -2018,9 +2014,6 @@ public class InterpreterInfo implements IInterpreterInfo {
                 } else {
                     if (fName.endsWith(".pyi")) {
                         String modName = fName.substring(0, fName.length() - (".pyi".length()));
-                        if (modName.equals("typing") || modName.equals("builtins") || modName.equals("__builtin__")) {
-                            continue;
-                        }
                         this.typeshedCache.put(basename + modName, file2);
                     }
                 }

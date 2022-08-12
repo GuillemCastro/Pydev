@@ -148,8 +148,8 @@ public class PythonCompletionCalltipsTest extends CodeCompletionTestsBase {
     public void testCalltips3a() throws Exception {
         String s;
         s = "" +
-                "def m1((a, b), c):\n" + //yes, this is no longer supported (and this construct is rarely used).
-                "    print a, b, c\n" +
+                "def m1(a, b, c):\n" + //yes, this is no longer supported (and this construct is rarely used).
+                "    print(a, b, c)\n" +
                 "m1()";
         PyContextInformationValidator validator = new PyContextInformationValidator();
         int requestOffset = s.length() - 1;
@@ -162,7 +162,7 @@ public class PythonCompletionCalltipsTest extends CodeCompletionTestsBase {
         assertFalse(validator.isContextInformationValid(0));
         assertTrue(validator.isContextInformationValid(requestOffset));
         assertFalse(validator.isContextInformationValid(requestOffset + 1));
-        assertEquals("(a, b), c", contextInformation.getContextDisplayString());
+        assertEquals("a, b, c", contextInformation.getContextDisplayString());
     }
 
     public void testCalltips4() throws Exception {

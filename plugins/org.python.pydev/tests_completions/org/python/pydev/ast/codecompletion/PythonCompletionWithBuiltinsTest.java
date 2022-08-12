@@ -72,7 +72,7 @@ public class PythonCompletionWithBuiltinsTest extends CodeCompletionTestsBase {
 
             @Override
             public int getGrammarVersion() {
-                return IPythonNature.LATEST_GRAMMAR_PY2_VERSION;
+                return IPythonNature.LATEST_GRAMMAR_PY3_VERSION;
             }
 
             @Override
@@ -228,7 +228,7 @@ public class PythonCompletionWithBuiltinsTest extends CodeCompletionTestsBase {
 
     public void testBuiltinsInNamespace2() throws BadLocationException, IOException, Exception {
         String s = "__builtins__.RuntimeError.";
-        requestCompl(s, s.length(), -1, new String[] { "__doc__", "__getitem__()", "__init__()", "__str__()" });
+        requestCompl(s, s.length(), -1, new String[] { "__doc__", "__init__()", "__str__()", "with_traceback(tb)" });
     }
 
     public void testPreferForcedBuiltin() throws BadLocationException, IOException, Exception {
@@ -460,7 +460,7 @@ public class PythonCompletionWithBuiltinsTest extends CodeCompletionTestsBase {
                 "    a = A()\n" +
                 "    a.list1.";
 
-        requestCompl(s, -1, new String[] { "pop()", "remove(value)" });
+        requestCompl(s, -1, new String[] { "pop(index)", "remove(value)" });
     }
 
     public void test__all__() throws Exception {
@@ -489,7 +489,7 @@ public class PythonCompletionWithBuiltinsTest extends CodeCompletionTestsBase {
                 "";
 
         //should keep the variables from the __builtins__ in this module
-        requestCompl(s, -1, new String[] { "sort(cmp=None, key=None, reverse=False)" });
+        requestCompl(s, -1, new String[] { "sort(key=None, reverse=False)" });
     }
 
     public void testFindDefinition() throws Exception {
@@ -578,7 +578,7 @@ public class PythonCompletionWithBuiltinsTest extends CodeCompletionTestsBase {
                 "a.";
 
         //open returns a file object.
-        requestCompl(s, -1, new String[] { "close()", "flush()", "readlines()" });
+        requestCompl(s, -1, new String[] { "close()", "flush()", "write(text)" });
     }
 
     public void testBuiltinKnownReturns1() throws Exception {

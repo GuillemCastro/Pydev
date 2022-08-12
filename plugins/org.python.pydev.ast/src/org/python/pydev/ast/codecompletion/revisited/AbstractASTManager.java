@@ -182,6 +182,9 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
 
                 state.checkDefinitionMemory(definitionModule, def);
                 TokensList tks = this.getCompletionsForModule(definitionModule, copy);
+                if (tks.getMapsToTypeVar()) {
+                    return tks;
+                }
                 if (tks.notEmpty()) {
                     // TODO: This is not ideal... ideally, we'd return this info along instead of setting
                     // it in the token, but this may be hard as we have to touch LOTS of places for
@@ -871,7 +874,7 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
 
                     if (mod != null) {
                         state.checkFindModuleCompletionsMemory(mod, state.getActivationToken());
-                        TokensList completionsForModule = getCompletionsForModule(mod, state);
+                        TokensList completionsForModule = getCompletionsForModule(mod, state.getCopy());
                         if (completionsForModule.size() > 0) {
                             return decorateWithLocal(completionsForModule, localScope, state);
                         }
@@ -888,12 +891,19 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
 
                 //If it was still not found, go to builtins.
                 IModule builtinsMod = getBuiltinMod(state.getNature(), state);
-                if (builtinsMod != null && builtinsMod != module) {
-                    tokens = getCompletionsForModule(builtinsMod, state);
-                    if (tokens.notEmpty()) {
-                        if (tokens.getFirst().getRepresentation().equals("ERROR:") == false) {
-                            return decorateWithLocal(tokens, localScope, state);
+                if (builtinsMod != null && builtinsMod != module && !state.isResolvingBuiltins()) {
+                    state.pushResolvingBuiltins();
+                    try {
+                        // A state copy is important because otherwise the line/col is kept (which means
+                        // that a find definition could end up finding the definition for the wrong module).
+                        tokens = getCompletionsForModule(builtinsMod, state.getCopy());
+                        if (tokens.notEmpty()) {
+                            if (tokens.getFirst().getRepresentation().equals("ERROR:") == false) {
+                                return decorateWithLocal(tokens, localScope, state);
+                            }
                         }
+                    } finally {
+                        state.popResolvingBuiltins();
                     }
                 }
 
@@ -1257,6 +1267,9 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
                                             } else if (searchDict == 2) {
                                                 unpackedTypeFromDocstring = typeInfo.getUnpacked(unpackPos);
                                             }
+                                            if (unpackedTypeFromDocstring == null) {
+                                                continue;
+                                            }
                                             if (unpackedTypeFromDocstring.equals(typeInfo)) {
                                                 continue;
                                             }
@@ -1378,19 +1391,20 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
                 List<String> actToks = new ArrayList<String>();
 
                 ITypeInfo unpackedTypeFromDocstring = typeInfo.getUnpacked(unpackPos);
-
-                Object unpackedTypeNodeObject = unpackedTypeFromDocstring.getNode();
-                if (unpackedTypeNodeObject instanceof Subscript) {
-                    Subscript subscript = (Subscript) unpackedTypeNodeObject;
-                    List<String> subscriptValues = NodeUtils.extractValuesFromSubscriptSlice(subscript.slice);
-                    actToks.addAll(subscriptValues);
-                    actToks.add(unpackedTypeFromDocstring.getActTok());
-                } else if (unpackedTypeNodeObject instanceof BinOp) {
-                    BinOp binOp = (BinOp) unpackedTypeNodeObject;
-                    List<String> binOpValues = NodeUtils.extractValuesFromBinOp(binOp, BinOp.BitOr);
-                    actToks.addAll(binOpValues);
-                } else {
-                    actToks.add(unpackedTypeFromDocstring.getActTok());
+                if (unpackedTypeFromDocstring != null) {
+                    Object unpackedTypeNodeObject = unpackedTypeFromDocstring.getNode();
+                    if (unpackedTypeNodeObject instanceof Subscript) {
+                        Subscript subscript = (Subscript) unpackedTypeNodeObject;
+                        List<String> subscriptValues = NodeUtils.extractValuesFromSubscriptSlice(subscript.slice);
+                        actToks.addAll(subscriptValues);
+                        actToks.add(unpackedTypeFromDocstring.getActTok());
+                    } else if (unpackedTypeNodeObject instanceof BinOp) {
+                        BinOp binOp = (BinOp) unpackedTypeNodeObject;
+                        List<String> binOpValues = NodeUtils.extractValuesFromBinOp(binOp, BinOp.BitOr);
+                        actToks.addAll(binOpValues);
+                    } else {
+                        actToks.add(unpackedTypeFromDocstring.getActTok());
+                    }
                 }
 
                 for (String actTok : actToks) {

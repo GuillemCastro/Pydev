@@ -18,6 +18,7 @@ import org.python.pydev.parser.jython.ast.ClassDef;
 import org.python.pydev.parser.jython.ast.Index;
 import org.python.pydev.parser.jython.ast.Module;
 import org.python.pydev.parser.jython.ast.Name;
+import org.python.pydev.parser.jython.ast.NameTok;
 import org.python.pydev.parser.jython.ast.Subscript;
 import org.python.pydev.parser.jython.ast.exprType;
 import org.python.pydev.parser.jython.ast.stmtType;
@@ -46,9 +47,16 @@ public class ClassDefTokensExtractor {
 
         TokensList classTokens = new TokensList(globalModelVisitorTokens);
         try {
-            for (int j = 0; j < classDef.bases.length; j++) {
-                TokensList completions = getCompletionsForBase(manager, classDef.bases[j]);
+            if (classDef.bases.length == 0) {
+                // i.e.: Always derived from object by default...
+                TokensList completions = getCompletionsForBase(manager, new Name("object", NameTok.ClassName, false));
                 classTokens.addAll(completions);
+
+            } else {
+                for (int j = 0; j < classDef.bases.length; j++) {
+                    TokensList completions = getCompletionsForBase(manager, classDef.bases[j]);
+                    classTokens.addAll(completions);
+                }
             }
             TokensList assignmentClassTokens = getAssignmentTokens();
             classTokens.addAll(assignmentClassTokens);

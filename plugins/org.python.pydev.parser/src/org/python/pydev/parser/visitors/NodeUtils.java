@@ -1293,8 +1293,10 @@ public class NodeUtils {
             With module = (With) node;
             return module.body.body;
         }
-        return new stmtType[0];
+        return EMPTY_STMT;
     }
+
+    private final static stmtType[] EMPTY_STMT = new stmtType[0];
 
     /**
      * Sets the body of some node.

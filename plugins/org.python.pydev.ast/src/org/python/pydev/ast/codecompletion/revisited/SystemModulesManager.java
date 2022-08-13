@@ -298,7 +298,10 @@ public final class SystemModulesManager extends ModulesManagerWithBuild implemen
                     } else if (obj.ast != null) {
                         SimpleNode ast = (SimpleNode) obj.ast;
                         if ("builtins".equals(name)) {
-                            ast = TypeshedLoader.fixBuiltinsAST(ast, this, info);
+                            TypeshedLoader.fixBuiltinsAST(ast, this, info);
+                        } else {
+                            TypeshedLoader.fixAST(ast, this, info);
+
                         }
                         n = new PredefinedSourceModule(name, predefinedModule, ast, obj.error);
                         cachePredefined.add(keyForCacheAccess, n, this);

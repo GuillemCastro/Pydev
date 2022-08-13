@@ -13,11 +13,8 @@ package org.python.pydev.ast.interpreter_managers;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.io.StringReader;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1951,7 +1948,7 @@ public class InterpreterInfo implements IInterpreterInfo {
      * @param moduleRequest
      * @return the file that matches the passed module name with the predefined builtins.
      */
-    public File getPredefinedModule(String moduleName, IModuleRequestState moduleRequest) {
+    public File getPredefinedModuleFile(String moduleName, IModuleRequestState moduleRequest) {
         if (this.predefinedBuiltinsCache == null) {
             this.predefinedBuiltinsCache = new HashMap<String, File>();
             for (String s : this.getPredefinedCompletionsPath()) {
@@ -1983,7 +1980,7 @@ public class InterpreterInfo implements IInterpreterInfo {
                 File typeshedPath = CorePlugin.getTypeshedPath();
                 File f = new File(typeshedPath, "stdlib");
                 if (f.isDirectory()) {
-                    fillTypeshedFromDirInfo(f, "");
+                    TypeshedLoader.fillTypeshedFromDirInfo(this.typeshedCache, f, "");
                 }
             } catch (CoreException e) {
                 Log.log(e);
@@ -1995,32 +1992,6 @@ public class InterpreterInfo implements IInterpreterInfo {
             ret = this.typeshedCache.get(moduleName);
         }
         return ret;
-    }
-
-    private void fillTypeshedFromDirInfo(File f, String basename) {
-        java.nio.file.Path path = Paths.get(f.toURI());
-        try (DirectoryStream<java.nio.file.Path> newDirectoryStream = Files.newDirectoryStream(path)) {
-            Iterator<java.nio.file.Path> it = newDirectoryStream.iterator();
-            while (it.hasNext()) {
-                java.nio.file.Path path2 = it.next();
-                File file2 = path2.toFile();
-                String fName = file2.getName();
-                if (file2.isDirectory()) {
-                    String dirname = fName;
-                    if (!dirname.contains("@")) {
-                        fillTypeshedFromDirInfo(file2,
-                                basename.isEmpty() ? dirname + "." : basename + dirname + ".");
-                    }
-                } else {
-                    if (fName.endsWith(".pyi")) {
-                        String modName = fName.substring(0, fName.length() - (".pyi".length()));
-                        this.typeshedCache.put(basename + modName, file2);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            Log.log(e);
-        }
     }
 
     public void removePredefinedCompletionPath(String item) {

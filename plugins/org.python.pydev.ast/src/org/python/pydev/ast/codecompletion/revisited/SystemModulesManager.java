@@ -29,6 +29,7 @@ import org.python.pydev.ast.codecompletion.revisited.modules.PredefinedSourceMod
 import org.python.pydev.ast.codecompletion.revisited.modules.SourceModule;
 import org.python.pydev.ast.interpreter_managers.InterpreterInfo;
 import org.python.pydev.ast.interpreter_managers.InterpreterManagersAPI;
+import org.python.pydev.ast.interpreter_managers.TypeshedLoader;
 import org.python.pydev.core.DeltaSaver;
 import org.python.pydev.core.FileUtilsFileBuffer;
 import org.python.pydev.core.IGrammarVersionProvider;
@@ -47,10 +48,6 @@ import org.python.pydev.core.TokensList;
 import org.python.pydev.core.log.Log;
 import org.python.pydev.parser.PyParser;
 import org.python.pydev.parser.jython.SimpleNode;
-import org.python.pydev.parser.jython.ast.Module;
-import org.python.pydev.parser.jython.ast.stmtType;
-import org.python.pydev.parser.jython.ast.factory.AdapterPrefs;
-import org.python.pydev.parser.jython.ast.factory.PyAstFactory;
 import org.python.pydev.plugin.nature.SystemPythonNature;
 import org.python.pydev.shared_core.cache.LRUCache;
 import org.python.pydev.shared_core.io.FileUtils;
@@ -58,7 +55,6 @@ import org.python.pydev.shared_core.parsing.BaseParser.ParseOutput;
 import org.python.pydev.shared_core.string.FastStringBuffer;
 import org.python.pydev.shared_core.string.StringUtils;
 import org.python.pydev.shared_core.structure.Tuple;
-import org.python.pydev.shared_core.utils.ArrayUtils;
 
 /**
  * @author Fabio Zadrozny
@@ -234,11 +230,11 @@ public final class SystemModulesManager extends ModulesManagerWithBuild implemen
 
         //A different choice for users that want more complete information on the libraries they're dealing
         //with is using predefined modules. Those will
-        File predefinedModule = this.info.getPredefinedModule(name, moduleRequest);
+        File predefinedModule = this.info.getPredefinedModuleFile(name, moduleRequest);
         boolean found = predefinedModule != null && predefinedModule.exists();
         if (!found && !name.endsWith(".__init__")) {
             final String nameWithInit = name + ".__init__";
-            predefinedModule = this.info.getPredefinedModule(nameWithInit, moduleRequest);
+            predefinedModule = this.info.getPredefinedModuleFile(nameWithInit, moduleRequest);
             found = predefinedModule != null && predefinedModule.exists();
             if (found) {
                 name = nameWithInit;
@@ -301,24 +297,8 @@ public final class SystemModulesManager extends ModulesManagerWithBuild implemen
 
                     } else if (obj.ast != null) {
                         SimpleNode ast = (SimpleNode) obj.ast;
-                        if ("builtins".equals(name) || "__builtin__".equals(name)) {
-                            // None/False/True must be added as they're not there by default.
-                            if (ast instanceof Module) {
-                                Module module = (Module) ast;
-                                PyAstFactory astFactory = new PyAstFactory(
-                                        new AdapterPrefs("\n", info.getModulesManager().getNature()));
-                                module.body = ArrayUtils.concatArrays(module.body, new stmtType[] {
-                                        astFactory.createAssign(astFactory.createStoreName("None"),
-                                                astFactory.createNone()),
-                                        astFactory.createAssign(astFactory.createStoreName("False"),
-                                                astFactory.createFalse()),
-                                        astFactory.createAssign(astFactory.createStoreName("True"),
-                                                astFactory.createTrue()),
-                                        astFactory.createAssign(astFactory.createStoreName("__builtins__"),
-                                                astFactory.createName("Any"))
-                                });
-
-                            }
+                        if ("builtins".equals(name)) {
+                            ast = TypeshedLoader.fixBuiltinsAST(ast, this, info);
                         }
                         n = new PredefinedSourceModule(name, predefinedModule, ast, obj.error);
                         cachePredefined.add(keyForCacheAccess, n, this);

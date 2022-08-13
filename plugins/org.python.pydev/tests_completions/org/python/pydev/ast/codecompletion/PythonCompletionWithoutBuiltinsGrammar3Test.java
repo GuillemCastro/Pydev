@@ -177,10 +177,7 @@ public class PythonCompletionWithoutBuiltinsGrammar3Test extends CodeCompletionT
                 "def method(a: 'Bar'):\n" +
                 "    a.";
 
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(1, proposals.length);
-        ICompletionProposalHandle prop = proposals[0];
-        assertEquals("bar()", prop.getDisplayString());
+        requestCompl(s, s.length(), -1, new String[] { "bar()" });
     }
 
     public void testParamTypeInfoAsString2() throws Exception {
@@ -231,7 +228,9 @@ public class PythonCompletionWithoutBuiltinsGrammar3Test extends CodeCompletionT
                 "a.";
 
         ICompletionProposalHandle[] proposals = requestCompl(s, s.length(), -1, new String[] {});
-        assertEquals(1, proposals.length);
+        for (int i = 0; i < proposals.length; i++) {
+            System.out.println(proposals[i]);
+        }
         ICompletionProposalHandle prop = proposals[0];
         assertEquals("some_method()", prop.getDisplayString());
     }

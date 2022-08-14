@@ -28,6 +28,7 @@ import org.python.pydev.ast.codecompletion.revisited.CompletionCache;
 import org.python.pydev.ast.codecompletion.revisited.modules.CompiledModule;
 import org.python.pydev.ast.codecompletion.revisited.modules.CompiledToken;
 import org.python.pydev.ast.codecompletion.revisited.modules.SourceToken;
+import org.python.pydev.ast.interpreter_managers.TypeshedLoader;
 import org.python.pydev.core.BaseModuleRequest;
 import org.python.pydev.core.ExtensionHelper;
 import org.python.pydev.core.ICompletionState;
@@ -158,12 +159,12 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
         super.setUp();
         InterpreterGeneralPreferences.FORCE_USE_TYPESHED = true;
         CompiledModule.COMPILED_MODULES_ENABLED = false;
+        TypeshedLoader.OBJECT_COMPLETIONS = false;
         this.restorePythonPath(TestDependent.getCompletePythonLib(true, isPython3Test()) +
                 "|" + TestDependent.PYTHON2_PIL_PACKAGES +
                 "|"
                 + TestDependent.TEST_PYSRC_TESTING_LOC +
                 "configobj-4.6.0-py2.6.egg", false);
-
         this.restorePythonPath(false);
         codeCompletion = new PyCodeCompletion();
         PyCodeCompletion.onCompletionRecursionException = new ICallback<Object, CompletionRecursionException>() {
@@ -183,6 +184,7 @@ public class PythonCompletionWithoutBuiltinsTest extends CodeCompletionTestsBase
     @Override
     public void tearDown() throws Exception {
         CompiledModule.COMPILED_MODULES_ENABLED = true;
+        TypeshedLoader.OBJECT_COMPLETIONS = false;
         super.tearDown();
         PyCodeCompletion.onCompletionRecursionException = null;
         ExtensionHelper.testingParticipants = null;

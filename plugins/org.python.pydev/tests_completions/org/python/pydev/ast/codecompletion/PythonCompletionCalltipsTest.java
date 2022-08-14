@@ -231,6 +231,44 @@ public class PythonCompletionCalltipsTest extends CodeCompletionTestsBase {
         assertEquals(StringUtils.format(s0, "m1="), document.get());
     }
 
+    public void testCalltips7a() throws Exception {
+        String s0 = "class TestCase(object):\n" +
+                "    def __init__(self, *, param1: int, param2: int=2):\n" +
+                "        pass\n"
+                +
+                "    \n" +
+                "TestCase(para%s)";
+
+        String s = StringUtils.format(s0, "");
+        ICompletionProposalHandle[] proposals = requestCompl(s, s.length() - 1, -1, new String[] {});
+        assertEquals(2, proposals.length);
+
+        PyCompletionProposal param1Proposal = (PyCompletionProposal) assertContains("param1=", proposals);
+        assertTrue("Found: " + param1Proposal.getAdditionalProposalInfo(),
+                param1Proposal.getAdditionalProposalInfo().indexOf("param: param1:int") == 0);
+
+        PyCompletionProposal param2Proposal = (PyCompletionProposal) assertContains("param2=", proposals);
+        assertTrue("Found: " + param2Proposal.getAdditionalProposalInfo(),
+                param2Proposal.getAdditionalProposalInfo().indexOf("param: param2:int=2") == 0);
+
+        Document document = new Document(s);
+        param1Proposal.apply(document);
+        assertEquals(StringUtils.format(s0, "m1="), document.get());
+    }
+
+    public void testSortCalltips1() throws Exception {
+        //should keep the variables from the __builtins__ in this module
+        String s = "[].sort(r)";
+        requestCompl(s, s.length() - 1, -1, new String[] { "reverse=" });
+    }
+
+    public void testSortCalltips2() throws Exception {
+        String s = "[].sort()";
+        ICompletionProposalHandle[] completions = requestCompl(s, s.length() - 1, 1, new String[] { "sort()" });
+        PyLinkedModeCompletionProposal comp = (PyLinkedModeCompletionProposal) completions[0];
+        assertEquals(comp.getOnApplyAction(), IPyCompletionProposal.ON_APPLY_SHOW_CTX_INFO_AND_ADD_PARAMETETRS);
+    }
+
     public void testCalltips8() throws Exception {
         String s0 = "class TestCase(object):\n" +
                 "    def __init__(self, param1, param2):\n" +

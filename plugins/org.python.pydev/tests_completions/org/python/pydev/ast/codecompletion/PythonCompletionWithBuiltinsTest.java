@@ -485,11 +485,8 @@ public class PythonCompletionWithBuiltinsTest extends CodeCompletionTestsBase {
     }
 
     public void testSortParamsCorrect() throws Exception {
-        String s = "[].sort" +
-                "";
-
         //should keep the variables from the __builtins__ in this module
-        requestCompl(s, -1, new String[] { "sort(key=None, reverse=False)" });
+        requestCompl("[].sort", 1, new String[] { "sort()" });
     }
 
     public void testFindDefinition() throws Exception {

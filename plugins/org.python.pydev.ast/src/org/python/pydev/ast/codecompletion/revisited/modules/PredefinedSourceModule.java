@@ -14,6 +14,13 @@ public class PredefinedSourceModule extends SourceModule {
 
     public PredefinedSourceModule(String name, File f, SimpleNode n, Throwable parseError) {
         super(name, f, n, parseError, null);
+        if ("builtins".equals(this.name)) {
+            filter = (choice, token) -> {
+                if (token.getOriginalRep().startsWith("_")) {
+                    return false;
+                }
+                return true;
+            };
+        }
     }
-
 }

@@ -323,9 +323,8 @@ public class PythonCompletionCalltipsTest extends CodeCompletionTestsBase {
                 "        self.M1(k%s)";
 
         String s = StringUtils.format(s0, "");
-        ICompletionProposalHandle[] proposals = requestCompl(s, s.length() - 1, -1, new String[] {});
-        assertEquals(1, proposals.length);
-
+        ICompletionProposalHandle[] proposals = requestCompl(s, s.length() - 1, 3,
+                new String[] { "kkk=", "KeyboardInterrupt", "KeyError" });
         Document document = new Document(s);
         proposals[0].apply(document);
         assertEquals(StringUtils.format(s0, "kk="), document.get());

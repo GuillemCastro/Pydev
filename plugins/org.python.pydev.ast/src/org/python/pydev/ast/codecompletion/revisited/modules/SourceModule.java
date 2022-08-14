@@ -138,7 +138,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
     /**
      * The object may be a SourceToken or a List<SourceToken>
      */
-    private HashMap<Integer, TreeMap<String, Object>> tokensCache = new HashMap<Integer, TreeMap<String, Object>>();
+    private final HashMap<Integer, TreeMap<String, Object>> tokensCache = new HashMap<Integer, TreeMap<String, Object>>();
 
     /**
      * Set when the visiting is done (can hold some metadata, such as __all__ token assign)
@@ -279,12 +279,19 @@ public class SourceModule extends AbstractModule implements ISourceModule {
         return ret;
     }
 
+    public static interface IFilter {
+        public boolean accept(int choice, IToken token);
+    }
+
+    protected IFilter filter;
+
     /**
+    
      * @param lookOnlyForNameStartingWith: if not null, well only get from the cache tokens starting with the given representation
      * @return a list of IToken
      */
     @SuppressWarnings("unchecked")
-    private synchronized IToken[] getTokens(int which, ICompletionState state, String lookOnlyForNameStartingWith) {
+    protected synchronized IToken[] getTokens(int which, ICompletionState state, String lookOnlyForNameStartingWith) {
         if ((which & GlobalModelVisitor.INNER_DEFS) != 0) {
             throw new RuntimeException("Cannot do this one with caches");
         }
@@ -327,6 +334,12 @@ public class SourceModule extends AbstractModule implements ISourceModule {
                     choice = GlobalModelVisitor.MODULE_DOCSTRING;
                 } else {
                     choice = GlobalModelVisitor.GLOBAL_TOKENS;
+                }
+
+                if (filter != null) {
+                    if (!filter.accept(choice, token)) {
+                        continue;
+                    }
                 }
                 String rep = token.getRepresentation();
                 if (DEBUG_INTERNAL_GLOBALS_CACHE) {

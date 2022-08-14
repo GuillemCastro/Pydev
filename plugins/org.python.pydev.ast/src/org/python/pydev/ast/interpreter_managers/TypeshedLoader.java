@@ -32,6 +32,8 @@ import org.python.pydev.shared_core.string.FastStringBuffer;
 
 public class TypeshedLoader {
 
+    public static boolean OBJECT_COMPLETIONS = true;
+
     public static void fillTypeshedFromDirInfo(final Map<String, File> typeshedCache, final File f,
             final String basename) {
         java.nio.file.Path path = Paths.get(f.toURI());
@@ -73,16 +75,26 @@ public class TypeshedLoader {
 
         stmtType[] body = NodeUtils.getBody(ast);
         LinkedList<stmtType> bodyAsList = new LinkedList<>(Arrays.asList(body));
-        // Iterator<stmtType> it = bodyAsList.iterator();
-        // while (it.hasNext()) {
-        //     stmtType next = it.next();
-        //     if (next != null) {
-        //         try {
-        //         } catch (Exception e) {
-        //             Log.log(e);
-        //         }
-        //     }
-        // }
+        if (!OBJECT_COMPLETIONS) {
+            Iterator<stmtType> it = bodyAsList.iterator();
+            while (it.hasNext()) {
+                stmtType next = it.next();
+                try {
+                    if (next instanceof ClassDef) {
+                        ClassDef classDef = (ClassDef) next;
+                        NameTok name = (NameTok) classDef.name;
+                        if (name != null) {
+                            if ("object".equals(name.id)) {
+                                classDef.body = new stmtType[0];
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.log(e);
+                }
+            }
+        }
 
         bodyAsList.add(astFactory.createAssign(astFactory.createStoreName("None"),
                 astFactory.createNone()));

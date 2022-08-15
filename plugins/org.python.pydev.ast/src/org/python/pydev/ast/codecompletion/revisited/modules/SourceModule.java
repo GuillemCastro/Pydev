@@ -1548,7 +1548,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
     public boolean isBootstrapModule() {
         if (bootstrap == null) {
             TokensList ret = getGlobalTokens();
-            if (ret != null && (ret.size() == 1 || ret.size() == 2 || ret.size() == 3) && this.file != null) { //also checking 2 or 3 tokens because of __file__ and __name__
+            if (ret != null && (ret.size() >= 1 && ret.size() <= 3) && this.file != null) { //also checking 2 or 3 tokens because of __file__ and __name__
                 for (IterTokenEntry entry : ret) {
                     IToken tok = entry.getToken();
                     if ("__bootstrap__".equals(tok.getRepresentation())) {

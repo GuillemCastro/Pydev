@@ -341,4 +341,20 @@ public final class CompletionStateWrapper implements ICompletionState {
     public void popResolvingBuiltins() {
         this.wrapped.popResolvingBuiltins();
     }
+
+    @Override
+    public void pushSkipObjectBaseCompletions() {
+        this.wrapped.pushSkipObjectBaseCompletions();
+    }
+
+    @Override
+    public void popSkipObjectBaseCompletions() {
+        this.wrapped.popSkipObjectBaseCompletions();
+    }
+
+    @Override
+    public boolean getSkipObjectBaseCompletions() {
+        return this.wrapped.getSkipObjectBaseCompletions();
+
+    }
 }

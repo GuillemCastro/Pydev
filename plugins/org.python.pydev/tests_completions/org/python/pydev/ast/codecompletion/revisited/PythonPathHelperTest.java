@@ -337,7 +337,18 @@ public class PythonPathHelperTest extends CodeCompletionTestsBase {
         comps = getComps(doc, state);
         ASTManagerTest.assertIsIn("test1", comps);
         ASTManagerTest.assertIsIn("test2", comps);
-        assertEquals(2, comps.size());
+        ASTManagerTest.assertIsIn("__str__", comps);
+
+        int count = 0;
+        for (IterTokenEntry entry : comps) {
+            IToken t = entry.getToken();
+            String rep = t.getRepresentation();
+            if ("__str__".equals(rep)) {
+                count += 1;
+            }
+        }
+
+        assertEquals("Expected a single __str__ entry. Found: " + count + ".", 1, count);
 
     }
 

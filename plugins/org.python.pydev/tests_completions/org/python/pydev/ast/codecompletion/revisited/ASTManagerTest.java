@@ -470,7 +470,7 @@ public class ASTManagerTest extends CodeCompletionTestsBase {
         }
 
         assertTrue("The searched token (" + string +
-                ")was not found in the completions. " + buffer, found);
+                ") was not found in the completions. " + buffer, found);
     }
 
 }

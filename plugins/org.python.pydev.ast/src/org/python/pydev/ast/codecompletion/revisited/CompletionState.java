@@ -637,7 +637,8 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
         return false;
     }
 
-    int assign = 0;
+    private int assign = 0;
+    private int skipObjectBaseCompletions;
 
     @Override
     public int pushAssign() {
@@ -667,6 +668,21 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
     @Override
     public boolean isResolvingBuiltins() {
         return this.resolvingBuiltins > 0;
+    }
+
+    @Override
+    public void pushSkipObjectBaseCompletions() {
+        this.skipObjectBaseCompletions += 1;
+    }
+
+    @Override
+    public void popSkipObjectBaseCompletions() {
+        this.skipObjectBaseCompletions -= 1;
+    }
+
+    @Override
+    public boolean getSkipObjectBaseCompletions() {
+        return this.skipObjectBaseCompletions > 0;
     }
 
     @Override

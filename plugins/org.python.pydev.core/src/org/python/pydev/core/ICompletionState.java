@@ -199,4 +199,10 @@ public interface ICompletionState extends ICompletionCache, IModuleRequestState 
 
     void popResolvingBuiltins();
 
+    boolean getSkipObjectBaseCompletions();
+
+    void pushSkipObjectBaseCompletions();
+
+    void popSkipObjectBaseCompletions();
+
 }

@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.Assert;
 import org.python.pydev.core.ICompletionState.LookingFor;
 import org.python.pydev.shared_core.structure.LowMemoryArrayList;
 
@@ -67,8 +66,12 @@ public class TokensList implements IObjectsList, Iterable<IterTokenEntry> {
     }
 
     public void addAll(TokensList lst) {
-        Assert.isTrue(!freeze);
-        Assert.isTrue(lst != this);
+        if (freeze) {
+            throw new AssertionError("Cannot add items after TokensList is frozen.");
+        }
+        if (lst == this) {
+            throw new AssertionError("Cannot add a list to itself.");
+        }
         if (lst == null || lst.size == 0) {
             return;
         }

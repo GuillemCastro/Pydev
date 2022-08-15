@@ -802,14 +802,10 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
         }
 
         if (module != null) {
-
-            //get the tokens (global, imported and wild imported)
-            TokensList globalTokens = module.getGlobalTokens();
-
+            // The token imported modules are required on both heuristics afterwards.
             TokensList tokenImportedModules = module.getTokenImportedModules();
             importedModules.addAll(tokenImportedModules);
             state.setTokenImportedModules(importedModules);
-            TokensList wildImportedModules = module.getWildImportedModules();
 
             //now, lets check if this is actually a module that is an __init__ (if so, we have to get all
             //the other .py files as modules that are in the same level as the __init__)
@@ -831,6 +827,8 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
             }
 
             if (state.getActivationToken().length() == 0) {
+                TokensList globalTokens = module.getGlobalTokens();
+                TokensList wildImportedModules = module.getWildImportedModules();
 
                 TokensList completions = getGlobalCompletions(globalTokens,
                         importedModules, wildImportedModules, state, module);
@@ -860,6 +858,8 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
                         return decorateWithLocal(tokens, localScope, state);
                     }
                 }
+
+                TokensList wildImportedModules = module.getWildImportedModules();
 
                 //for wild imports, we must get the global completions with __all__ filtered
                 //wild imports: recursively go and get those completions and see if any matches it.

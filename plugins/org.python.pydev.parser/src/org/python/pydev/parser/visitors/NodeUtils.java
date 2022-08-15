@@ -95,7 +95,7 @@ import org.python.pydev.shared_core.string.FullRepIterable;
 import org.python.pydev.shared_core.string.StringUtils;
 import org.python.pydev.shared_core.string.TextSelectionUtils;
 
-public class NodeUtils {
+public final class NodeUtils {
 
     /**
      * @param node a function definition (if other will return an empty string)

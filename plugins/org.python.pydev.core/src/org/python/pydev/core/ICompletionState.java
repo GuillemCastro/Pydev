@@ -11,6 +11,7 @@ package org.python.pydev.core;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.python.pydev.core.structure.CompletionRecursionException;
+import org.python.pydev.shared_core.model.ISimpleNode;
 
 public interface ICompletionState extends ICompletionCache, IModuleRequestState {
 
@@ -66,6 +67,8 @@ public interface ICompletionState extends ICompletionCache, IModuleRequestState 
     int getCol();
 
     void checkDefinitionMemory(IModule module, IDefinition definition) throws CompletionRecursionException;
+
+    void checkLookForFunctionDefReturn(IModule module, ISimpleNode node) throws CompletionRecursionException;
 
     void checkWildImportInMemory(IModule current, IModule mod) throws CompletionRecursionException;
 

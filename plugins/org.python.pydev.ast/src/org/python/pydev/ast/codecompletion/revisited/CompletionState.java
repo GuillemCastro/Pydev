@@ -34,6 +34,7 @@ import org.python.pydev.core.TokensList;
 import org.python.pydev.core.preferences.InterpreterGeneralPreferences;
 import org.python.pydev.core.structure.CompletionRecursionException;
 import org.python.pydev.shared_core.SharedCorePlugin;
+import org.python.pydev.shared_core.model.ISimpleNode;
 import org.python.pydev.shared_core.string.FastStringBuffer;
 import org.python.pydev.shared_core.structure.Tuple3;
 
@@ -53,6 +54,7 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
     private final Memo<String> memory = new Memo<String>();
     private final Memo<Definition> definitionMemory = new Memo<Definition>();
     private final Memo<IModule> wildImportMemory = new Memo<IModule>();
+    private final Memo<ISimpleNode> functionDefReturnMemory = new Memo<ISimpleNode>();
     private final Memo<String> importedModsCalled = new Memo<String>();
     private final Memo<String> findMemory = new Memo<String>();
     private final Memo<String> resolveImportMemory = new Memo<String>();
@@ -203,6 +205,15 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
 
     }
 
+    @Override
+    public void checkLookForFunctionDefReturn(IModule caller, ISimpleNode node) throws CompletionRecursionException {
+        if (this.functionDefReturnMemory.isInRecursion(caller, node)) {
+            throw new CompletionRecursionException(
+                    "Possible recursion found -- probably programming error -- (caller: " + caller.getName()
+                            + ", node: " + node + " ) - stopping analysis.");
+        }
+    }
+
     /**
      * @param module
      * @param definition
@@ -214,7 +225,6 @@ public final class CompletionState implements ICompletionState, IModuleRequestSt
                     "Possible recursion found -- probably programming error --  (module: " + module.getName()
                             + ", token: " + definition + ") - stopping analysis.");
         }
-
     }
 
     /**

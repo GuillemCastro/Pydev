@@ -15,6 +15,7 @@ import org.python.pydev.core.IToken;
 import org.python.pydev.core.NoExceptionCloseable;
 import org.python.pydev.core.TokensList;
 import org.python.pydev.core.structure.CompletionRecursionException;
+import org.python.pydev.shared_core.model.ISimpleNode;
 import org.python.pydev.shared_core.string.FastStringBuffer;
 
 public final class CompletionStateWrapper implements ICompletionState {
@@ -147,6 +148,11 @@ public final class CompletionStateWrapper implements ICompletionState {
     @Override
     public void checkWildImportInMemory(IModule current, IModule mod) throws CompletionRecursionException {
         wrapped.checkWildImportInMemory(current, mod);
+    }
+
+    @Override
+    public void checkLookForFunctionDefReturn(IModule module, ISimpleNode node) throws CompletionRecursionException {
+        wrapped.checkLookForFunctionDefReturn(module, node);
     }
 
     @Override
@@ -357,4 +363,5 @@ public final class CompletionStateWrapper implements ICompletionState {
         return this.wrapped.getSkipObjectBaseCompletions();
 
     }
+
 }

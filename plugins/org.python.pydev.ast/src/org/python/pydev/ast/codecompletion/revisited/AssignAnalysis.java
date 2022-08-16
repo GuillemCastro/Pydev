@@ -213,7 +213,7 @@ public class AssignAnalysis {
         if (!foundAsParamWithTypingInfo) {
             if (definition.ast instanceof FunctionDef) {
                 TokensList found = manager.getCompletionFromFuncDefReturn(
-                        state, sourceModule, definition, false);
+                        state, definition.module, definition.ast, false);
                 ret.addAll(found);
             } else {
                 TokensList found = getNonFunctionDefCompletionsFromAssign(manager, state, sourceModule,

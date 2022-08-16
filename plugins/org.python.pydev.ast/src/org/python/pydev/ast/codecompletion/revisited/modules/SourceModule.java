@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -72,6 +73,7 @@ import org.python.pydev.shared_core.cache.Cache;
 import org.python.pydev.shared_core.cache.LRUCache;
 import org.python.pydev.shared_core.callbacks.CallbackWithListeners;
 import org.python.pydev.shared_core.io.FileUtils;
+import org.python.pydev.shared_core.string.FastStringBuffer;
 import org.python.pydev.shared_core.string.FullRepIterable;
 import org.python.pydev.shared_core.string.StringUtils;
 import org.python.pydev.shared_core.structure.FastStack;
@@ -97,6 +99,8 @@ public class SourceModule extends AbstractModule implements ISourceModule {
     private static final IToken[] EMPTY_ITOKEN_ARRAY = new IToken[0];
 
     private static final boolean DEBUG_INTERNAL_GLOBALS_CACHE = false;
+
+    private static final boolean DEBUG_GET_TOKENS_REQUESTS = false;
 
     public static boolean TESTING = false;
 
@@ -163,7 +167,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
      */
     @Override
     public TokensList getWildImportedModules() {
-        return new TokensList(getTokens(GlobalModelVisitor.WILD_MODULES, null, null));
+        return new TokensList(getTokens(GlobalModelVisitor.WILD_MODULES, null));
     }
 
     /**
@@ -177,7 +181,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
      */
     @Override
     public TokensList getTokenImportedModules() {
-        return new TokensList(getTokens(GlobalModelVisitor.ALIAS_MODULES, null, null));
+        return new TokensList(getTokens(GlobalModelVisitor.ALIAS_MODULES, null));
     }
 
     private Boolean hasFutureImportAbsoluteImportDeclared = null;
@@ -221,7 +225,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
      */
     @Override
     public TokensList getGlobalTokens() {
-        return new TokensList(getTokens(GlobalModelVisitor.GLOBAL_TOKENS, null, null));
+        return new TokensList(getTokens(GlobalModelVisitor.GLOBAL_TOKENS, null));
     }
 
     /**
@@ -229,7 +233,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
      */
     @Override
     public String getDocString() {
-        IToken[] l = getTokens(GlobalModelVisitor.MODULE_DOCSTRING, null, null);
+        IToken[] l = getTokens(GlobalModelVisitor.MODULE_DOCSTRING, null);
         if (l.length > 0) {
             SimpleNode a = ((SourceToken) l[0]).getAst();
 
@@ -291,7 +295,33 @@ public class SourceModule extends AbstractModule implements ISourceModule {
      * @return a list of IToken
      */
     @SuppressWarnings("unchecked")
-    protected synchronized IToken[] getTokens(int which, ICompletionState state, String lookOnlyForNameStartingWith) {
+    protected synchronized IToken[] getTokens(int which, String lookOnlyForNameStartingWith) {
+        if (DEBUG_GET_TOKENS_REQUESTS) {
+            if (//"builtins".equals(this.name) &&
+            (which & GlobalModelVisitor.GLOBAL_TOKENS) != 0) {
+                FastStringBuffer bufWhich = new FastStringBuffer();
+                if ((which & GlobalModelVisitor.GLOBAL_TOKENS) != 0) {
+                    bufWhich.append("globals");
+                }
+                if ((which & GlobalModelVisitor.ALIAS_MODULES) != 0) {
+                    bufWhich.append("alias_modules");
+                }
+                if ((which & GlobalModelVisitor.WILD_MODULES) != 0) {
+                    bufWhich.append("wild_modules");
+                }
+                if ((which & GlobalModelVisitor.MODULE_DOCSTRING) != 0) {
+                    bufWhich.append("module_docstring");
+                }
+                if (lookOnlyForNameStartingWith != null) {
+                    System.out.println("getTokens: " + this.name + "  -  "
+                            + lookOnlyForNameStartingWith + "  - (" + bufWhich + ")");
+
+                } else {
+                    System.out.println("getTokens: " + this.name + "                   - (" + bufWhich + ")");
+                }
+            }
+        }
+
         if ((which & GlobalModelVisitor.INNER_DEFS) != 0) {
             throw new RuntimeException("Cannot do this one with caches");
         }
@@ -299,7 +329,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
         TreeMap<String, Object> tokens = tokensCache.get(which);
 
         if (tokens != null) {
-            return createArrayFromCacheValues(tokens, lookOnlyForNameStartingWith);
+            return createArrayFromCacheValues(which, tokens, lookOnlyForNameStartingWith);
         }
         //end cache
 
@@ -314,7 +344,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
 
             //we request all and put it into the cache (partitioned), because that's faster than making multiple runs through it
             GlobalModelVisitor globalModelVisitor = GlobalModelVisitor.getGlobalModuleVisitorWithTokens(ast, all, name,
-                    state, false, nature);
+                    false, nature);
 
             this.globalModelVisitorCache = globalModelVisitor;
 
@@ -379,11 +409,20 @@ public class SourceModule extends AbstractModule implements ISourceModule {
 
         //now, let's get it from the cache... (which should be filled by now)
         tokens = tokensCache.get(which);
-        return createArrayFromCacheValues(tokens, lookOnlyForNameStartingWith);
+        return createArrayFromCacheValues(which, tokens, lookOnlyForNameStartingWith);
     }
 
+    private final Map<Integer, IToken[]> cacheNullValues = new HashMap<>();
+
     @SuppressWarnings("unchecked")
-    private IToken[] createArrayFromCacheValues(TreeMap<String, Object> tokens, String lookOnlyForNameStartingWith) {
+    private IToken[] createArrayFromCacheValues(int which, TreeMap<String, Object> tokens,
+            String lookOnlyForNameStartingWith) {
+        if (lookOnlyForNameStartingWith == null) {
+            IToken[] cachedArray = cacheNullValues.get(which);
+            if (cachedArray != null) {
+                return cachedArray;
+            }
+        }
         List<SourceToken> ret = new ArrayList<SourceToken>();
 
         Collection<Object> lookIn;
@@ -402,8 +441,19 @@ public class SourceModule extends AbstractModule implements ISourceModule {
                 throw new RuntimeException("Unexpected class in cache:" + o);
             }
         }
-        return ret.toArray(new SourceToken[ret.size()]);
+        SourceToken[] retArray;
+        if (ret.size() == 0) {
+            retArray = EMPTY_SOURCE_TOKEN_ARRAY;
+        } else {
+            retArray = ret.toArray(new SourceToken[ret.size()]);
+        }
+        if (lookOnlyForNameStartingWith == null) {
+            cacheNullValues.put(which, retArray);
+        }
+        return retArray;
     }
+
+    private static final SourceToken[] EMPTY_SOURCE_TOKEN_ARRAY = new SourceToken[0];
 
     /**
      *
@@ -448,7 +498,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
         if (actToksLen > 0) {
             goFor = actToks.get(0);
         }
-        IToken[] t = getTokens(GlobalModelVisitor.GLOBAL_TOKENS, null, goFor);
+        final IToken[] t = getTokens(GlobalModelVisitor.GLOBAL_TOKENS, goFor);
         LookingFor lookingFor = null;
 
         for (int i = 0; i < t.length; i++) {
@@ -618,6 +668,18 @@ public class SourceModule extends AbstractModule implements ISourceModule {
                     classToks = getClassToks(initialState, manager, (ClassDef) ast);
                     initialState.setLookingFor(ICompletionState.LookingFor.LOOKING_FOR_UNBOUND_VARIABLE);
                     classToks.setLookingFor(initialState.getLookingFor());
+
+                } else if (ast instanceof FunctionDef) {
+                    try {
+                        classToks = manager.getCompletionFromFuncDefReturn(
+                                initialState, this, ast, false);
+                    } catch (CompletionRecursionException e) {
+                        classToks = new TokensList();
+                    } catch (Exception e) {
+                        classToks = new TokensList();
+                        Log.log(e);
+                    }
+
                 } else {
                     classToks = getInnerToks(initialState, manager, ast);
                 }
@@ -852,7 +914,7 @@ public class SourceModule extends AbstractModule implements ISourceModule {
 
         //now, check for locals
         TokensList localTokens = scopeVisitor.scope.getAllLocalTokens();
-        int len = localTokens.size();
+
         for (IterTokenEntry entry : localTokens) {
             IToken tok = entry.getToken();
 

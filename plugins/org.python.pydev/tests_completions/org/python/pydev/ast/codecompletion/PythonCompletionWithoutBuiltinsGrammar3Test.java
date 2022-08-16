@@ -210,7 +210,7 @@ public class PythonCompletionWithoutBuiltinsGrammar3Test extends CodeCompletionT
                 "a = method()\n" +
                 "a.";
 
-        requestCompl(s, s.length(), 1, new String[] { "some_method()" });
+        requestCompl(s, s.length(), -11, new String[] { "some_method()", "__str__()" });
     }
 
     public void testCompletionForOptional2() throws Exception {
@@ -226,7 +226,7 @@ public class PythonCompletionWithoutBuiltinsGrammar3Test extends CodeCompletionT
                 "a: Optional[IFoo] = method()\n" +
                 "a.";
 
-        requestCompl(s, s.length(), 1, new String[] { "some_method()" });
+        requestCompl(s, s.length(), -1, new String[] { "some_method()", "__str__()" });
     }
 
     public void testCompletionWithWalrus() throws Exception {

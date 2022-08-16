@@ -154,18 +154,15 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
     public abstract void removeModule(File file, IProject project, IProgressMonitor monitor);
 
     @Override
-    public TokensList getCompletionFromFuncDefReturn(ICompletionState state, IModule module, IDefinition definition,
+    public TokensList getCompletionFromFuncDefReturn(ICompletionState state, IModule module,
+            ISimpleNode functionDefNode,
             boolean considerYieldTheReturnType)
             throws CompletionRecursionException {
         TokensList ret = new TokensList();
         if (!(module instanceof SourceModule)) {
             return ret;
         }
-        if (!(definition instanceof Definition)) {
-            return ret;
-        }
-        Definition def = (Definition) definition;
-        FunctionDef functionDef = (FunctionDef) def.ast;
+        FunctionDef functionDef = (FunctionDef) functionDefNode;
 
         ITypeInfo type = NodeUtils.getReturnTypeFromFuncDefAST(functionDef);
         if (type != null) {
@@ -178,9 +175,9 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
                     copy.setLine(body[0].beginLine - 1);
                     copy.setCol(body[0].beginColumn - 1);
                 }
-                IModule definitionModule = def.module;
+                IModule definitionModule = module;
 
-                state.checkDefinitionMemory(definitionModule, def);
+                state.checkLookForFunctionDefReturn(definitionModule, functionDefNode);
                 TokensList tks = this.getCompletionsForModule(definitionModule, copy);
                 if (tks.getMapsToTypeVar()) {
                     return tks;
@@ -224,8 +221,8 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
             if (act == null) {
                 continue; //may happen if the return we're seeing is a return without anything (keep on going to check other returns)
             }
-            ITokenCompletionRequest request = new TokenCompletionRequest(act, def.module, state.getNature(), "",
-                    def.line - 1, def.col - 1);
+            ITokenCompletionRequest request = new TokenCompletionRequest(act, module, state.getNature(), "",
+                    value.beginLine - 1, value.beginColumn - 1);
             TokensList tokensList = new TokensList();
             ICompletionState copy = state.getCopy();
             copy.setActivationToken(act);
@@ -237,9 +234,7 @@ public abstract class AbstractASTManager implements ICodeCompletionASTManager {
                 lookingFor = ICompletionState.LookingFor.LOOKING_FOR_INSTANCED_VARIABLE;
             }
             try (NoExceptionCloseable x = state.pushLookingFor(lookingFor)) {
-                IModule definitionModule = def.module;
-
-                state.checkDefinitionMemory(definitionModule, def);
+                state.checkLookForFunctionDefReturn(module, value);
                 try {
                     PyCodeCompletion.doTokenCompletion(request, this, tokensList, act, copy);
                 } catch (MisconfigurationException | IOException | CoreException

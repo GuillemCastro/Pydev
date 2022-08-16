@@ -80,7 +80,7 @@ public class CompiledModule extends AbstractModule {
         BUILTIN_REPLACEMENTS.put("open", "io.TextIOWrapper");
         BUILTIN_REPLACEMENTS.put("dir", "list");
         BUILTIN_REPLACEMENTS.put("filter", "list");
-        BUILTIN_REPLACEMENTS.put("raw_input", "str");
+        BUILTIN_REPLACEMENTS.put("input", "str");
         BUILTIN_REPLACEMENTS.put("input", "str");
         BUILTIN_REPLACEMENTS.put("locals", "dict");
         BUILTIN_REPLACEMENTS.put("map", "list");
